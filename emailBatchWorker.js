@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { drainEmailQueue, queueSize } from "./store/emailQueue.js"; // adjust path
+import { logger } from "./utils/logger.js";
 
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -23,7 +24,7 @@ function mapQueueItemToResendEmail(email) {
     let thisEmail = email.data;
 
     // TODO harden this to not accept variables NOT in a valid email format.
-    
+
   return thisEmail;
 }
 
@@ -47,7 +48,9 @@ export async function flushEmailQueueOnce() {
       // IMPORTANT:
       // If you want reliability, you should re-enqueue the failed chunk (or send to a dead-letter queue).
       // For now, we log and continue.
-      console.error("Resend batch send error:", error);
+      // console.error("Resend batch send error:", error);
+      logger.error("Error sending email.", {error} );
+      logger.error("Data from Error:", {data});
       continue;
     }
 
@@ -56,8 +59,8 @@ export async function flushEmailQueueOnce() {
      console.log("Batch sent results:", data);
   }
 
-  console.log(`sent = ${sent}`)
-  console.log(`batches = ${chunks.length}`);
+  // console.log(`sent = ${sent}`)
+  // console.log(`batches = ${chunks.length}`);
   return { sent, batches: chunks.length };
 }
 

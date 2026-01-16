@@ -1,4 +1,4 @@
-// const {enqueueEmail, queueSize} = require("../store/emailQueue");
+import { logger } from "../utils/logger.js";
 import {
   enqueueEmail,
   queueSize
@@ -18,7 +18,7 @@ const processReportRequest = async (req, res) => {
 
         // Build the email from passed information
         let email = {
-            from: 'noreply@aquadocinc.org',
+            from: 'report-request@aquadocinc.org',
             to: ['cray@aquadocinc.com'],
             subject: `ReportRequest: ${queuedData.employeeName} - ${queuedData.reportName}`,
             html: `
@@ -69,9 +69,12 @@ const processReportRequest = async (req, res) => {
                 message: "Error encountered"
             }
 
+        logger.error("Error Storing data in memory. Data to be stored was...", {email});
+
         return response;
     } catch (error) {
         console.log(error);
+        logger.error("Catch error in submitService:", {error})
     }
 }
 
