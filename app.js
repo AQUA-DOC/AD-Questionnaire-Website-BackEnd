@@ -7,15 +7,23 @@ import router from "./routes/routes.js";
 const app = express();
 
 // middleware
-app.use(cors());
+// app.use(cors());
+app.use(
+  cors({
+    origin: process.env.NODE_ENV === "production"
+      ? "https://aquadocinc.org"
+      : true
+  })
+);
 app.use(express.json());
 
+
 // health
-app.get("/health", (req, res) => {
+app.get("/backend/health", (req, res) => {
   res.json({ ok: true });
 });
 
 // routes
-app.use("/", router);
+app.use("/backend", router);
 
 export default app;
