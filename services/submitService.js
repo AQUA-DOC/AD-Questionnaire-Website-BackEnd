@@ -1,7 +1,6 @@
 // const {enqueueEmail, queueSize} = require("../store/emailQueue");
 import {
   enqueueEmail,
-  drainEmailQueue,
   queueSize
 } from "../store/emailQueue.js";
 
@@ -9,18 +8,53 @@ import {
 
 const processReportRequest = async (req, res) => {
     try {
-        // const queryParams = 'id, route, category, title, affiliate_link, link_text, view_count';
-        // const readAllQuery = `SELECT ${queryParams} FROM page_content ORDER BY view_count DESC`;
-        // const { rows } = await database.query(readAllQuery);
-        console.log("Inside submit.service.js processReportRequest")
-        console.log(req)
         let startQueueSize = queueSize();
-        // sendToEmailQueue(req.data)
-        enqueueEmail(req);
+
+        // Build the email to be later sent.
+        let queuedData = req;
+
+        // Test 'From' email: Acme <onboarding@resend.dev>
+        // Test 'To' email: delivered@resend.dev
+
+        // Build the email from passed information
+        let email = {
+            from: 'noreply@aquadocinc.org',
+            to: ['cray@aquadocinc.com'],
+            subject: `ReportRequest: ${queuedData.employeeName} - ${queuedData.reportName}`,
+            html: `
+                    <h1>Report Request</h1>
+
+                    <p><strong>Report Name:</strong> ${queuedData.reportName}</p>
+                    <p><strong>Requested By:</strong> ${queuedData.employeeName}</p>
+
+                    <p><strong>Description:</strong><br/>${queuedData.reportDescription}</p>
+
+                    <p><strong>Report Question(s):</strong><br/>${queuedData.reportQuestion}</p>
+
+                    <p><strong>Frequency:</strong> ${queuedData.frequency}</p>
+
+                    <p><strong>Intended Use:</strong><br/>${queuedData.intendedUse}</p>
+
+                    <p><strong>Delivery Method:</strong> ${queuedData.delivery}</p>
+
+                    <p><strong>Needs Historical Backfill:</strong>${queuedData.needsBackfill === 'true' ? 'Yes' : 'No'}</p>
+
+                    ${
+                        queuedData.needsBackfill === 'true'
+                        ? `<p><strong>Backfill Details:</strong><br/>${queuedData.backfillDetails}</p>`
+                        : ''
+                    }
+
+                    <p><strong>Submitted At:</strong> ${queuedData.submittedAt}</p>
+                    `,
+        }
+
+        // Send to in-memory queue for batch processing
+        enqueueEmail(email);
         let endQueueSize = queueSize();
 
-        console.log(`start size is: ${startQueueSize}`)
-        console.log(`end queue size is: ${endQueueSize}`)
+        // console.log(`start size is: ${startQueueSize}`)
+        // console.log(`end queue size is: ${endQueueSize}`)
 
         if (endQueueSize > startQueueSize) {
             let response = {
@@ -31,26 +65,11 @@ const processReportRequest = async (req, res) => {
         }
 
         let response = {
-                status: 404,
+                status: 400,
                 message: "Error encountered"
             }
-        console.log(response)
+
         return response;
-
-        // if (rows !== undefined) {
-        //     let response = {
-        //         status: 200,
-        //         message: rows
-        //     }
-        //     return response;
-        // } else {
-        //     let response = {
-        //         status: 400,
-        //         message: "Error"
-        //     }
-        //     return response;
-        // }
-
     } catch (error) {
         console.log(error);
     }

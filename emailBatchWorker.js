@@ -1,8 +1,6 @@
 import { Resend } from "resend";
 import { drainEmailQueue, queueSize } from "./store/emailQueue.js"; // adjust path
 
-const test = process.env.RESEND_API_KEY;
-console.log(`testsss. ${test}`) 
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -21,47 +19,12 @@ function chunk(arr, size) {
  * Your queue stores: { data, queuedAt }
  * Where data should be a Resend "send email" object: { from, to, subject, html, ... }
  */
-function mapQueueItemToResendEmail(item) {
-    console.log(`mapQueueItemToResendEmail ${JSON.stringify(item.data)}`)
-    let queuedData = item.data;
-    console.log(queuedData)
+function mapQueueItemToResendEmail(email) {
+    let thisEmail = email.data;
 
-    let email = {
-            from: 'Acme <onboarding@resend.dev>',
-            to: ['delivered@resend.dev'],
-            subject: `ReportRequest: ${queuedData.employeeName} - ${queuedData.reportName}`,
-            html: `
-                    <h1>Report Request</h1>
-
-                    <p><strong>Report Name:</strong> ${queuedData.reportName}</p>
-                    <p><strong>Requested By:</strong> ${queuedData.employeeName}</p>
-
-                    <p><strong>Description:</strong><br/>${queuedData.reportDescription}</p>
-
-                    <p><strong>Report Question(s):</strong><br/>${queuedData.reportQuestion}</p>
-
-                    <p><strong>Frequency:</strong> ${queuedData.frequency}</p>
-
-                    <p><strong>Intended Use:</strong><br/>${queuedData.intendedUse}</p>
-
-                    <p><strong>Delivery Method:</strong> ${queuedData.delivery}</p>
-
-                    <p><strong>Needs Historical Backfill:</strong>${queuedData.needsBackfill === 'true' ? 'Yes' : 'No'}</p>
-
-                    ${
-                        queuedData.needsBackfill === 'true'
-                        ? `<p><strong>Backfill Details:</strong><br/>${queuedData.backfillDetails}</p>`
-                        : ''
-                    }
-
-                    <p><strong>Submitted At:</strong> ${queuedData.submittedAt}</p>
-                    `,
-        }
-
-
-  // If your data is already in Resend's expected shape, this is fine:
-  return email;
-
+    // TODO harden this to not accept variables NOT in a valid email format.
+    
+  return thisEmail;
 }
 
 /**
