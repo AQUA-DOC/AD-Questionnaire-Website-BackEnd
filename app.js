@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import router from "./routes/routes.js";
 
+import { queueSize } from "./store/emailQueue.js";
+
 
 const app = express();
 
@@ -21,6 +23,11 @@ app.use(express.json());
 // health
 app.get("/backend/health", (req, res) => {
   res.json({ ok: true });
+});
+
+// return queue size
+app.get("/backend/queue-size", (req, res) => {
+  res.json({inQueue: queueSize()})
 });
 
 // routes
