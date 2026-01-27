@@ -58,9 +58,6 @@ export async function flushEmailQueueOnce() {
     sent += emailsChunk.length;
      console.log("Batch sent results:", data);
   }
-
-  // console.log(`sent = ${sent}`)
-  // console.log(`batches = ${chunks.length}`);
   return { sent, batches: chunks.length };
 }
 
@@ -69,14 +66,12 @@ export async function flushEmailQueueOnce() {
  * Call this once when your server boots.
  */
 export function startHourlyEmailBatchWorker() {
-  // Optional: run once at startup so you don't wait an hour
-  // (comment out if you ONLY want hourly)
-  //flushEmailQueueOnce().catch(err => console.error("Initial flush failed:", err));
 
+  // TODO: Change to 1 hour interval
   setInterval(() => {
     // Don’t overlap runs if one is still processing (simple lock)
     flushEmailQueueOnce().catch(err => console.error("Hourly flush failed:", err));
-  }, 60 * 1000);
+  }, 60 * 60 * 1000);
 
   console.log("Hourly email batch worker started.");
 }

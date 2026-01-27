@@ -3,74 +3,84 @@ import {
   enqueueEmail,
   queueSize
 } from "../store/emailQueue.js";
+// Import email templates
+import buildReportRequestEmail from "./emails/ReportRequest.js";
+import buildBranchManagerQuestionnaireEmail from "./emails/buildBranchManagerQuestionnaireEmail.js";
 
+
+// submitService.js handles all submissions.
+// It passes each submission type to its designated email creator / assembler
 
 
 const processReportRequest = async (req, res) => {
     try {
+        // initialize variables
         let startQueueSize = queueSize();
-
-        // Build the email to be later sent.
+        let endQueueSize;
         let queuedData = req;
+        let messageType;
 
-        // Test 'From' email: Acme <onboarding@resend.dev>
-        // Test 'To' email: delivered@resend.dev
-
-        // Build the email from passed information
-        let email = {
-            from: 'report-request@aquadocinc.org',
-            to: ['cray@aquadocinc.com'],
-            subject: `ReportRequest: ${queuedData.employeeName} - ${queuedData.reportName}`,
-            html: `
-                    <h1>Report Request</h1>
-
-                    <p><strong>Report Name:</strong> ${queuedData.reportName}</p>
-                    <p><strong>Requested By:</strong> ${queuedData.employeeName}</p>
-
-                    <p><strong>Description:</strong><br/>${queuedData.reportDescription}</p>
-
-                    <p><strong>Report Question(s):</strong><br/>${queuedData.reportQuestion}</p>
-
-                    <p><strong>Frequency:</strong> ${queuedData.frequency}</p>
-
-                    <p><strong>Intended Use:</strong><br/>${queuedData.intendedUse}</p>
-
-                    <p><strong>Delivery Method:</strong> ${queuedData.delivery}</p>
-
-                    <p><strong>Needs Historical Backfill:</strong>${queuedData.needsBackfill === 'true' ? 'Yes' : 'No'}</p>
-
-                    ${
-                        queuedData.needsBackfill === 'true'
-                        ? `<p><strong>Backfill Details:</strong><br/>${queuedData.backfillDetails}</p>`
-                        : ''
-                    }
-
-                    <p><strong>Submitted At:</strong> ${queuedData.submittedAt}</p>
-                    `,
+        // Check message type
+        if (queuedData?.messageType) {
+            // Safe to use queuedData.messageType
+            console.log(queuedData.messageType);
+            messageType = queuedData.messageType;
         }
 
-        // Send to in-memory queue for batch processing
-        enqueueEmail(email);
-        let endQueueSize = queueSize();
+        // Declare the email variable
+        let email;
 
-        // console.log(`start size is: ${startQueueSize}`)
-        // console.log(`end queue size is: ${endQueueSize}`)
+        // Build the passed messageType and send to queue for batch processing.
+        switch (messageType) {
 
+        // Process Report-Requests
+            case "report-request":
+                console.log("Switch Statement Report Request Hit");
+                // Build the email
+                email = buildReportRequestEmail(queuedData);
+
+                console.log(email);
+                // Send email to queue for batch processing
+                enqueueEmail(email);
+                // increase queue size
+                endQueueSize = queueSize();
+                break;
+
+        // Process Branch Manager Questionnaire
+            case "branch-manager-questions":
+                console.log("Switch statement branch manager questionnaire submission hit.")
+                email = buildBranchManagerQuestionnaireEmail(queuedData)
+
+                console.log(email);
+                // Send email to queue for batch processing
+                enqueueEmail(email);
+                // increase queue size
+                endQueueSize = queueSize();
+                break;
+
+        // Default response if not cases found.
+            default:
+                console.warn("Unknown or missing messageType");
+                logger.error("ERROR: messageType not passed");
+        }
+
+
+        // Check if queue size increased.
         if (endQueueSize > startQueueSize) {
+            // Return Success Message
             let response = {
                 status: 200,
                 message: "success or data payload"
             }
             return response;
         }
-
+        // Return error message
         let response = {
                 status: 400,
                 message: "Error encountered"
             }
-
+        // Log and return error
         logger.error("Error Storing data in memory. Data to be stored was...", {email});
-
         return response;
     } catch (error) {
         console.log(error);
