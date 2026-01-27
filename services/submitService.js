@@ -6,6 +6,7 @@ import {
 // Import email templates
 import buildReportRequestEmail from "./emails/ReportRequest.js";
 import buildBranchManagerQuestionnaireEmail from "./emails/buildBranchManagerQuestionnaireEmail.js";
+import buildRegionalManagerQuestionnaireEmail from "./emails/buildRegionalManagerQuestionnaireEmail.js";
 
 
 // submitService.js handles all submissions.
@@ -33,6 +34,7 @@ const processReportRequest = async (req, res) => {
         // Build the passed messageType and send to queue for batch processing.
         switch (messageType) {
 
+
         // Process Report-Requests
             case "report-request":
                 console.log("Switch Statement Report Request Hit");
@@ -46,9 +48,11 @@ const processReportRequest = async (req, res) => {
                 endQueueSize = queueSize();
                 break;
 
+
         // Process Branch Manager Questionnaire
             case "branch-manager-questions":
                 console.log("Switch statement branch manager questionnaire submission hit.")
+                // build the email
                 email = buildBranchManagerQuestionnaireEmail(queuedData)
 
                 console.log(email);
@@ -57,6 +61,23 @@ const processReportRequest = async (req, res) => {
                 // increase queue size
                 endQueueSize = queueSize();
                 break;
+            
+
+        // Process Regional Manager Questionnaire
+            case "regional-manager-questions":
+                console.log("Switch statement regional manager questionnaire submission hit.")
+                // build the email
+                email = buildRegionalManagerQuestionnaireEmail(queuedData);
+
+                console.log(email);
+                // Send email to queue for batch processing
+                enqueueEmail(email);
+                // increase queue size
+                endQueueSize = queueSize();
+                break;
+
+
+
 
         // Default response if not cases found.
             default:
