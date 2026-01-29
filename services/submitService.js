@@ -7,6 +7,10 @@ import {
 import buildReportRequestEmail from "./emails/ReportRequest.js";
 import buildBranchManagerQuestionnaireEmail from "./emails/buildBranchManagerQuestionnaireEmail.js";
 import buildRegionalManagerQuestionnaireEmail from "./emails/buildRegionalManagerQuestionnaireEmail.js";
+import buildFinanceTeamQuestionnaireEmail from "./emails/buildFinanceTeamQuestionnaireEmail.js";
+import buildClientCareTeamQuestionnaireEmail from "./emails/buildClientCareTeamQuestionnaireEmail.js";
+import buildFountainsTeamQuestionnaireEmail from "./emails/buildFountainsTeamQuestionnaireEmail.js";
+
 
 
 // submitService.js handles all submissions.
@@ -37,11 +41,8 @@ const processReportRequest = async (req, res) => {
 
         // Process Report-Requests
             case "report-request":
-                console.log("Switch Statement Report Request Hit");
                 // Build the email
                 email = buildReportRequestEmail(queuedData);
-
-                console.log(email);
                 // Send email to queue for batch processing
                 enqueueEmail(email);
                 // increase queue size
@@ -51,11 +52,8 @@ const processReportRequest = async (req, res) => {
 
         // Process Branch Manager Questionnaire
             case "branch-manager-questions":
-                console.log("Switch statement branch manager questionnaire submission hit.")
                 // build the email
                 email = buildBranchManagerQuestionnaireEmail(queuedData)
-
-                console.log(email);
                 // Send email to queue for batch processing
                 enqueueEmail(email);
                 // increase queue size
@@ -65,11 +63,8 @@ const processReportRequest = async (req, res) => {
 
         // Process Regional Manager Questionnaire
             case "regional-manager-questions":
-                console.log("Switch statement regional manager questionnaire submission hit.")
                 // build the email
                 email = buildRegionalManagerQuestionnaireEmail(queuedData);
-
-                console.log(email);
                 // Send email to queue for batch processing
                 enqueueEmail(email);
                 // increase queue size
@@ -77,6 +72,34 @@ const processReportRequest = async (req, res) => {
                 break;
 
 
+            case "finance-team-questions":
+                // build the email
+                email = buildFinanceTeamQuestionnaireEmail(queuedData);
+                // Send email to queue for batch processing
+                enqueueEmail(email);
+                // increase queue size
+                endQueueSize = queueSize();
+                break;
+
+
+            case "client-care-questions":
+                // build the email
+                email = buildClientCareTeamQuestionnaireEmail(queuedData);
+                // Send email to queue for batch processing
+                enqueueEmail(email);
+                // increase queue size
+                endQueueSize = queueSize();
+                break;
+
+
+            case "fountains-team-questions":
+                // build the email
+                email = buildFountainsTeamQuestionnaireEmail(queuedData)
+                // Send email to queue for batch processing
+                enqueueEmail(email);
+                // increase queue size
+                endQueueSize = queueSize();
+                break;
 
 
         // Default response if not cases found.
@@ -101,7 +124,12 @@ const processReportRequest = async (req, res) => {
                 message: "Error encountered"
             }
         // Log and return error
-        logger.error("Error Storing data in memory. Data to be stored was...", {email});
+        logger.error("Error Storing data in memory. Data to be stored was...", {
+                    from: email.from,
+                    to: email.to,
+                    subject: email.subject,
+                    htmlLength: email.html?.length
+                });
         return response;
     } catch (error) {
         console.log(error);
