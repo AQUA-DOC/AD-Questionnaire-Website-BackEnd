@@ -11,13 +11,13 @@ import buildFinanceTeamQuestionnaireEmail from "./emails/buildFinanceTeamQuestio
 import buildClientCareTeamQuestionnaireEmail from "./emails/buildClientCareTeamQuestionnaireEmail.js";
 import buildFountainsTeamQuestionnaireEmail from "./emails/buildFountainsTeamQuestionnaireEmail.js";
 import buildWaterscapesTeamQuestionnaireEmail from "./emails/buildWaterscapesTeamQuestionnaireEmail.js";
+import buildGeneralQuestionnaireEmail from "./emails/buildGeneralQuestionnaireEmail.js";
 
 
 
 // submitService.js handles all submissions.
 // It passes each submission type to its designated email creator / assembler
 
-let email;
 
 
 const processReportRequest = async (req, res) => {
@@ -35,7 +35,7 @@ const processReportRequest = async (req, res) => {
         }
 
         // Declare the email variable
-        // let email;
+        let email;
 
         // Build the passed messageType and send to queue for batch processing.
         switch (messageType) {
@@ -107,6 +107,15 @@ const processReportRequest = async (req, res) => {
             case "waterscapes-team-questions":
                 // build the email
                 email = buildWaterscapesTeamQuestionnaireEmail(queuedData)
+                // Send email to queue for batch processing
+                enqueueEmail(email);
+                // increase queue size
+                endQueueSize = queueSize();
+                break;
+
+
+            case "general-questionnaire":
+                email = buildGeneralQuestionnaireEmail(queuedData)
                 // Send email to queue for batch processing
                 enqueueEmail(email);
                 // increase queue size
